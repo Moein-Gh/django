@@ -7,9 +7,10 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 
-from .permissions import IsStaffEditorPermission
+from api.permissions import IsStaffEditorPermission
 
 from api.authentication import TokenAuthentication
+from api.mixins import StaffEditorPermissionMixin
 
 
 class ProductMixinView(
@@ -59,17 +60,17 @@ def product_alt_view(request, pk=None, *args, **kwargs):
         return Response(serializer.data)
 
 
-class ProductDetailAPIView(generics.RetrieveAPIView):
+class ProductDetailAPIView(StaffEditorPermissionMixin, generics.RetrieveAPIView):
+
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-    permission_classes = [permissions.IsAdminUser, IsStaffEditorPermission]
 
 
-class ProductUpdateAPIView(generics.UpdateAPIView):
+class ProductUpdateAPIView(StaffEditorPermissionMixin, generics.UpdateAPIView):
+
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     lookup_field = "pk"
-    permission_classes = [permissions.IsAdminUser, IsStaffEditorPermission]
 
     def perform_update(self, serializer):
         instance = serializer.save()
@@ -77,20 +78,20 @@ class ProductUpdateAPIView(generics.UpdateAPIView):
             instance.content = instance.title
 
 
-class ProductDeleteAPIView(generics.DestroyAPIView):
+class ProductDeleteAPIView(StaffEditorPermissionMixin, generics.DestroyAPIView):
+
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     lookup_field = "pk"
-    permission_classes = [permissions.IsAdminUser, IsStaffEditorPermission]
 
     def perform_destroy(self, instance):
         super().perform_destroy(instance)
 
 
-class ProductListCreateAPIView(generics.ListCreateAPIView):
+class ProductListCreateAPIView(StaffEditorPermissionMixin, generics.ListCreateAPIView):
+
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-    permission_classes = [permissions.IsAdminUser, IsStaffEditorPermission]
 
     def perform_create(self, serializer):
         # serializer.save(user=self.request.user)
@@ -102,6 +103,6 @@ class ProductListCreateAPIView(generics.ListCreateAPIView):
         serializer.save(content=content)
 
 
-class ProductListAPIView(generics.RetrieveAPIView):
+class ProductListAPIView(StaffEditorPermissionMixin, generics.RetrieveAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
